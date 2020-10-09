@@ -22,7 +22,7 @@ class ArticlesController extends Controller
         //behind the scenes automatically
         //Article::where('id', 1)->first();
         //dd($id);
-
+        //return $article;
         $article = Article::where('id', $id)->firstOrFail();
         return view('articles.show', [
             'article' => $article
