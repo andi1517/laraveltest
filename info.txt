@@ -1,0 +1,3 @@
+Bei DB Wechsel:
+
+php artisan config:cache
