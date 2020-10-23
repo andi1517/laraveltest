@@ -4,13 +4,19 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Article;
+use App\Tag;
 
 class ArticlesController extends Controller
 {
 
     public function index()
     {
-        $articles = Article::latest()->get();
+        if (request('tag')) {
+            $articles = Tag::where('name', request('tag'))->firstOrFail()->articles;
+            //return $articles;
+        } else {
+            $articles = Article::latest()->get();
+        }
         return view('articles.index', [
             'articles' => $articles
         ]);
@@ -39,13 +45,17 @@ class ArticlesController extends Controller
         return view('articles.create', [
             'article' => $article
         ]); */
-        return view('articles.create');
+        $tags = Tag::all();
+        return view('articles.create', [
+            'tags' => $tags
+        ]);
     }
 
     public function store()
     {
         //die('hello');
         //dump(request()->all());
+        //dd(request()->all());
         /* request()->validate([
             'title' => ['required', 'min:3', 'max:255'],
             'excerpt' => 'required',
@@ -60,7 +70,16 @@ class ArticlesController extends Controller
         Article::create($validatedAttributes); */
 
         //in eigener Methode:
-        Article::create($this->validateArticle());
+        //Article::create($this->validateArticle());
+
+        // Um ErrorException Array to string conversion zu vermeiden
+        $this->validateArticle();
+
+        $article = new Article(request(['title', 'excerpt', 'body']));
+        $article->user_id = 1; //erstmal hardcodiert, später nach auth() updated!
+        $article->save();
+
+        $article->tags()->attach(request('tags')); //hänge Tags an Artikel
 
         /* $article = new Article();
         $article->title = request('title');
@@ -118,7 +137,8 @@ class ArticlesController extends Controller
         return request()->validate([
             'title' => 'required',
             'excerpt' => 'required',
-            'body' => 'required'
+            'body' => 'required',
+            'tags' => 'exists:tags,id'
         ]);
     }
 }
